@@ -3,6 +3,7 @@ project(tinyxml2 VERSION 9.0.0)
 
 include(CTest)
 option(tinyxml2_BUILD_TESTING "Build tests for tinyxml2" "${BUILD_TESTING}")
+option(tinyxml2_PKG_CONFIG "Include pkg-config files" ON)
 
 ##
 ## Honor tinyxml2_SHARED_LIBS to match install interface
@@ -67,7 +68,7 @@ set(tinyxml2_INSTALL_PKGCONFIGDIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
     CACHE PATH "Directory for pkgconfig files")
 
 set(tinyxml2_INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/tinyxml2"
-    CACHE STRING "Path to tinyxml2 CMake files")
+    CACHE PATH "Path to tinyxml2 CMake files")
 
 ## CMake targets and export scripts
 
@@ -120,10 +121,17 @@ install(
 
 ## pkg-config
 
-configure_file(cmake/tinyxml2.pc.in tinyxml2.pc.gen @ONLY)
-file(GENERATE OUTPUT tinyxml2.pc INPUT "${CMAKE_CURRENT_BINARY_DIR}/tinyxml2.pc.gen")
-install(
-    FILES "${CMAKE_CURRENT_BINARY_DIR}/tinyxml2.pc"
-    DESTINATION "${tinyxml2_INSTALL_PKGCONFIGDIR}"
-    COMPONENT tinyxml2_development
-)
+if (tinyxml2_PKG_CONFIG)
+    set(pkg_config_name tinyxml2$<$<NOT:$<CONFIG:Release>>:-$<LOWER_CASE:$<CONFIG>>>.pc)
+    configure_file(cmake/tinyxml2.pc.in tinyxml2.pc.gen @ONLY)
+    file(
+        GENERATE
+        OUTPUT "${pkg_config_name}"
+        INPUT "${CMAKE_CURRENT_BINARY_DIR}/tinyxml2.pc.gen"
+    )
+    install(
+        FILES "${CMAKE_CURRENT_BINARY_DIR}/${pkg_config_name}"
+        DESTINATION "${tinyxml2_INSTALL_PKGCONFIGDIR}"
+        COMPONENT tinyxml2_development
+    )
+endif ()
